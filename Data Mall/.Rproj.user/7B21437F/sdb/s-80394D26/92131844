@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(dplyr)\nlibrary(tidyr)\nlibrary(ggplot2)\nsource(\"Codigo/funciones.R\")\nload(\"dataGuardada/baseConsolidada.RData\")\noptions(scipen = 9999999)\n\nload(\"dataGuardada/baseConsolidada.RData\")\nactivo = base %>% select(INT_PUNTO, SINTOMA) %>% distinct(.keep_all = T)\nactivo$SINTOMA = as.character(activo$SINTOMA)\nactivo = activo %>% mutate(SINTOMA=if_else(grepl('EN REVISI',SINTOMA), \"REVISION\", SINTOMA))\nactivo = activo %>% mutate(SINTOMA = if_else(SINTOMA == \"BAJA\", 0,1))\nactivo = activo %>% filter(SINTOMA == 1)\nbase = base %>% select(-c(SINTOMA))\n\n\n\n#########################HISOGRAMA######################################\nbase = base %>% group_by(INT_PUNTO) %>% arrange(TIEMPO) %>% ungroup() %>% as.data.frame()\nbase = base %>% filter(OPERACION == \"ACTUALIZACION\")\nbase = base %>% select(-c(INT_ESTADO))\nbase = base %>% select(c(INT_PUNTO, TIEMPO)) %>% distinct(.keep_all = T)\n\nbase = base %>% semi_join(activo, by = c(\"INT_PUNTO\"))\n\npuntos = unique(base$INT_PUNTO)\npunto = 267\n\npopular = data.frame()\ncont = 1\n\n\n\nfor (punto in puntos){\n  print(paste0(punto,\" \",cont,\" de \", \"122:  \",cont/122))\n  cont = cont + 1\n  temp = base %>% filter(INT_PUNTO == punto) %>% arrange(TIEMPO)\n  temp = temp %>% select(TIEMPO) %>% mutate(TIEMPO2 = lag(TIEMPO))\n  temp = temp %>% mutate(DIF = difftime(as.POSIXlt(TIEMPO),as.POSIXlt(TIEMPO2),units = 'mins'))\n  temp = temp %>% mutate(DIF = as.numeric(DIF))\n  temp = temp %>% arrange(desc(DIF))\n  if (nrow(temp)>0){\n    print(\"ENTRO\")\n    diferencias = temp %>% mutate(DIF = as.numeric(DIF)) %>% filter(!is.na(DIF))\n    diferencias = diferencias %>% mutate(fila = 1:n())\n    diferencias$punto = punto\n    temp$DIF = as.numeric(temp$DIF)\n    x = quantile(temp$DIF, na.rm = T)\n    nombres = names(x)\n    x = rbind(data.frame(matrix(x, nrow = 1)) %>% as.data.frame())\n    names(x) = nombres\n    \n    y = quantile(temp$DIF, na.rm = T, probs = seq(0,1,length = 11))\n    nombres = names(y)\n    y = rbind(data.frame(matrix(y, nrow = 1)) %>% as.data.frame())\n    names(y) = nombres\n    y = y %>% select(-c(`0%`, `50%`,`100%`))\n    x = x %>% cbind(y)\n    \n    y = quantile(temp$DIF, na.rm = T, probs = seq(0.91,0.99,length = 9))\n    nombres = names(y)\n    y = rbind(data.frame(matrix(y, nrow = 1)) %>% as.data.frame())\n    names(y) = nombres\n    x = x %>% cbind(y)\n    \n    x$PUNTO = punto\n    popular = popular %>% rbind(x)\n  }\n}\n\nwrite.csv(popular, file = \"cuartiles2.csv\", row.names = F)\n",
+    "created" : 1524679616416.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "368845138",
+    "id" : "92131844",
+    "lastKnownWriteTime" : 1524702524,
+    "last_content_update" : 1524702524510,
+    "path" : "C:/Users/Marcelo/Desktop/Data Mall/Codigo/PreAnalisis2.R",
+    "project_path" : "Codigo/PreAnalisis2.R",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

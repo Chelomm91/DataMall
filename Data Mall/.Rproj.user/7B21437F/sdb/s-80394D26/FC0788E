@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "arreglarNumeors = function(base, columnas){\n  for (i in columnas){\n    base[,i] = gsub(pattern = \",\", replacement = \"\", x = base[,i])\n    base[,i] = as.numeric(base[,i])\n  }\n  return(base)\n}\n\nprediccionLineal = function(temp, punto, coefFour){\n  tomar = nrow(temp)-(nrow(temp)*0.06) %>% as.integer()\n  serie<-ts(temp$CON[1:tomar],frequency = 24)\n  desc<-fourier(serie,coefFour)\n  for (k in 1:ncol(desc)){\n    colnames(desc)[k] = paste0(\"x\",k)\n  }\n  desc<-cbind(y=temp$CON[1:tomar],desc)%>%as.data.frame()\n  nombres = c(\"y~x1\",names(desc)[2:length(names(desc))])\n  nombres = paste0(nombres, collapse = \"+\")\n  eq<-as.formula(nombres)\n  reg<-lm(eq,desc)\n  \n  serie2<-ts(temp$CON[(tomar+1):nrow(temp)],frequency = 24)\n  desc2<-fourier(serie,coefFour,h=nrow(temp)-tomar)\n  for (k in 1:ncol(desc2)){\n    colnames(desc2)[k] = paste0(\"x\",k)\n  }\n  desc2<-desc2%>%as.data.frame()\n  prediccion<-predict(reg,desc2)\n  \n  prediccion = cbind(prediccion,con=temp$CON[(tomar+1):nrow(temp)]) %>% as.data.frame()\n  prediccion = prediccion %>% mutate(prediccion = if_else(prediccion < 0.5, 0, 1))\n  prediccion = prediccion %>% mutate(error = abs(prediccion-con))\n  prediccion$Tiempo = temp$TIEMPO[(tomar+1):nrow(temp)]\n  return(sum(prediccion$error))\n}\n\nprediccionArima = function(temp, punto, coefFour){\n  tomar = nrow(temp)-(nrow(temp)*0.06) %>% as.integer()\n  \n  ultimas = temp[(tomar+1):nrow(temp),]\n  primeras = temp[0:tomar,]\n  serie = ts(primeras$CON, frequency = 24)\n  arima = auto.arima(serie, xreg = fourier(serie, 4), stationary = T, stepwise = F, allowdrift = F, allowmean = F, parallel = T, seasonal = F)\n  predict(object = arima, newxreg = fourier(serie, 4, h = nrow(temp)-tomar))->prediccion\n  \n  resultados= prediccion$pred %>% as.data.frame()\n  names(resultados) = c(\"Predecido\")\n  resultados = resultados %>% mutate(Predecido = if_else(Predecido>0.5, 1, 0))\n  resultados= cbind(resultados, con=ultimas$CON)\n  resultados =cbind(resultados, fecha = ultimas$TIEMPO)\n  resultados = resultados %>% mutate(error = abs(Predecido - con))\n  return(sum(resultados$error))\n}\n\ntestSeasonal = function(temp){\n  try({serie<-ts(temp$CON,frequency = 24)\n  fit1 <- ets(serie)\n  fit2 <- ets(serie,model=\"ANN\")\n  deviance <- 2*c(logLik(fit1) - logLik(fit2))\n  df <- attributes(logLik(fit1))$df - attributes(logLik(fit2))$df \n  #P value\n  print(1-pchisq(deviance,df))\n  return(1-pchisq(deviance,df))}, silent = T)\n  return(1)\n}",
+    "created" : 1524581771585.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "790089330",
+    "id" : "FC0788E",
+    "lastKnownWriteTime" : 1524682228,
+    "last_content_update" : 1524682228447,
+    "path" : "C:/Users/Marcelo/Desktop/Data Mall/Codigo/funciones.R",
+    "project_path" : "Codigo/funciones.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

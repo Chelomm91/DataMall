@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(dplyr)\nlibrary(tidyr)\nsource(\"Codigo/funciones.R\")\n\ntotalClientes = read.csv(\"data/TotClientes.csv\")\ntotalClientes = totalClientes %>% select(INTERNO, NOMBRE, INFORMACION,IDENTIFICADOR, HABILITADO, HOMOLOGADO, DIA_OPERACION)\ntotalClientes = totalClientes %>% mutate(HABILITADO = if_else(grepl(\"S\", HABILITADO), 1, 0))\ntotalClientes = totalClientes %>% mutate(HOMOLOGADO = if_else(grepl(\"S\", HOMOLOGADO), 1, 0))\ntotalClientes = totalClientes %>% mutate(DIA_OPERACION = if_else(grepl(\"CAMBIA\", DIA_OPERACION), 1, 0))\n\ntotalPuntos = read.csv(\"data/TotClientesPuntos.csv\")\ntotalPuntos = totalPuntos %>% select(INTERNO, INT_CLIENTE, PREFIJO, INFORMA_CIERRE, CONTROLA_CIERRE, PUERTO, INFORMACION, INSTALACION, SINTOMA, NUMERACION, HOMOLOGADO)\ntotalPuntos = totalPuntos %>% mutate(CONTROLA_CIERRE = if_else(grepl(\"S\", CONTROLA_CIERRE), 1, 0))\n\ntotalClientes = totalClientes %>% select(-c(INFORMACION, HOMOLOGADO))\ntotalPuntos = totalPuntos %>% select(-c(INFORMA_CIERRE, CONTROLA_CIERRE, HOMOLOGADO))\n\n'totalEstados = read.csv(\"data/tot_clientes_puntos_20180425.csv\")\ntotalEstados = totalEstados %>% mutate(FECHA = strftime(as.POSIXct(FECHA), format = \"%Y-%m-%d\"))\ntotalEstados = totalEstados %>% separate(col = HORA,into = c(\"FECHA2\",\"HORA\"), sep = \" \")\ntotalEstados = totalEstados %>% select(-c(FECHA2))\ntotalEstados = totalEstados %>% distinct(INTPUNTO, OPERACION, FECHA, HORA, DRIVER, TRANSFER, FEC_REGISTRACION, HOR_REGISTRACION, .keep_all = T)\nsave(totalEstados, file = \"dataGuardada/totalEstados.RData\")'\n\n'totalEstados = read.csv(\"data/tot_clientes_puntos_20180425.csv\")\ntotalEstados = totalEstados %>% select(-c(INTERNO)) %>% distinct(.keep_all = T)\ntotalEstados = totalEstados %>% mutate(FECHA = strftime(as.POSIXct(FECHA), format = \"%Y-%m-%d\"))\ntotalEstados = totalEstados %>% mutate(HORA = strftime(as.POSIXct(HORA, format = \"%Y-%m-%dT%H:%M:%S.000Z\"), format = \"%H:%M:%S\"))\ntotalEstados = totalEstados %>% group_by(INT_PUNTO) %>% arrange(FECHA,HORA) %>% mutate(HORA2 = lag(HORA)) %>% ungroup() %>% as.data.frame()\ntotalEstados = totalEstados %>% mutate(DIFERENCIAHORA = difftime(as.POSIXlt(HORA, format = \"%H:%M:%S\"),as.POSIXlt(HORA2, format = \"%H:%M:%S\"),units = \"mins\"))'\n\nload(\"dataGuardada/totalEstados.RData\")\n\ntotalPuntos = totalPuntos %>% rename(INT_PUNTO = INTERNO)\ntotalPuntos = totalPuntos %>% arreglarNumeors(c(1,2))\n\ntotalClientes = totalClientes %>% rename(INT_CLIENTE = INTERNO)\ntotalClientes = totalClientes %>% arreglarNumeors(c(1))\n\ntotalEstados = totalEstados %>% rename(INT_ESTADO = INTERNO)\ntotalEstados = totalEstados %>% arreglarNumeors(c(1,2))\n\nbase = totalPuntos %>% full_join(totalClientes, by = c(\"INT_CLIENTE\"))\nbase = totalEstados %>% full_join(base, by =c(\"INT_PUNTO\"))\n\nsinData = base %>% filter(is.na(INT_ESTADO))\nbase = base %>% filter(!is.na(INT_ESTADO))\nbase = base %>% mutate(TIEMPO = strftime(as.POSIXlt(paste0(FECHA,\" \",HORA)), format = \"%Y-%m-%d %H:%M:%S\"))\n\nsave(sinData, base, file = \"dataGuardada/baseConsolidada.RData\")\n",
+    "created" : 1524690798363.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1438328076",
+    "id" : "61F5FDE3",
+    "lastKnownWriteTime" : 1524702274,
+    "last_content_update" : 1524702274666,
+    "path" : "C:/Users/Marcelo/Desktop/Data Mall/Codigo/leerData.R",
+    "project_path" : "Codigo/leerData.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

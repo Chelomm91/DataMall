@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "\ninicio = Sys.time()\nultimas200 = temp[(nrow(temp)-199):nrow(temp),]\nprimeras = temp[0:(nrow(temp)-200),]\nserie = ts(primeras$CON, frequency = 24)\narima = auto.arima(serie, xreg = fourier(serie, 4), stationary = T, stepwise = F, allowdrift = F, allowmean = F, parallel = T, seasonal = F)\npredict(object = arima, newxreg = fourier(serie, 4, h = 200))->prediccion\nprint(Sys.time()-inicio)\n\nresultados6= prediccion$pred %>% as.data.frame()\nnames(resultados6) = c(\"Predecido\")\nresultados6 = resultados6 %>% mutate(Predecido = if_else(Predecido>0.5, 1, 0))\nresultados6 = cbind(resultados6, con=ultimas200$CON)\nresultados6 =cbind(resultados6, fecha = ultimas200$TIEMPO)\nresultados6 = resultados6 %>% mutate(error = abs(Predecido - con))\nprint(sum(resultados6$error))",
+    "created" : 1524614289411.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2963548677",
+    "id" : "D7DF9630",
+    "lastKnownWriteTime" : 1524674641,
+    "last_content_update" : 1524674641300,
+    "path" : "C:/Users/Marcelo/Desktop/Data Mall/Codigo/forescast malo.R",
+    "project_path" : "Codigo/forescast malo.R",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

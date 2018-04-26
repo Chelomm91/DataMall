@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(dplyr)\nlibrary(tidyr)\nlibrary(ggplot2)\nlibrary(forecast)\nsource(\"Codigo/funciones.R\")\noptions(scipen = 9999999)\n\n#################################Analisis por Hora Consistencia###############################################\nload(\"dataGuardada/baseConsolidada.RData\")\nbase = base %>% select(INT_PUNTO, OPERACION, FECHA, HORA, TIEMPO) %>% distinct(.keep_all = T)\n\nnuevaBase = data.frame()\nlistaPuntos = sort(unique(base$INT_PUNTO))\npunto = listaPuntos[1]\nfor (punto in listaPuntos){\n  temp = base %>% filter(INT_PUNTO == punto) %>% arrange(TIEMPO)\n  minFecha = min(temp$TIEMPO)\n  maxFecha = max(temp$TIEMPO)\n  minFecha = strftime(as.POSIXlt(minFecha, format = \"%Y-%m-%d %H:%M:%S\"), format = \"%Y-%m-%d %H:00:00\")\n  maxFecha = strftime(as.POSIXlt(maxFecha, format = \"%Y-%m-%d %H:%M:%S\"), format = \"%Y-%m-%d %H:00:00\")\n  secuencia = seq(from = as.POSIXlt(minFecha), to = as.POSIXlt(maxFecha), by = \"hour\") %>% as.data.frame()\n  names(secuencia) = c(\"TIEMPO\")\n  secuencia$TIEMPO = as.character(secuencia$TIEMPO)\n}",
+    "created" : 1524696984894.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3512247963",
+    "id" : "F4AA8A06",
+    "lastKnownWriteTime" : 1524697406,
+    "last_content_update" : 1524697406337,
+    "path" : "C:/Users/Marcelo/Desktop/Data Mall/Codigo/HacerBienHora.R",
+    "project_path" : "Codigo/HacerBienHora.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
